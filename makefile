@@ -6,42 +6,28 @@ BINDIR	= bin/
 SRCDIR	= src/
 OBJDIR	= obj/
 
-# # Fichiers TD 01
 
-# # Fichiers exercice 02
-# OBJ_TD01_EX02= ex02/td01_ex02.o
-# EXEC_TD01_EX02= td01_ex02.out
 
-# # Fichiers exercice 03
-# OBJ_TD01_EX03= ex03/td01_ex03.o
-# EXEC_TD01_EX03= td01_ex03.out
-
-# # Fichiers exercice 04
-# OBJ_TD01_EX04= ex04/td01_ex04.o
-# EXEC_TD01_EX04= td01_ex04.out
-
-# # Fichiers exercice 05
-# OBJ_TD01_EX05= ex05/td01_ex05.o
-# EXEC_TD01_EX05= td01_ex05.out
-
-# # Fichiers exercice 06
-# OBJ_TD01_EX06= ex06/td01_ex06.o
-# EXEC_TD01_EX06= td01_ex06.out
-
-# Fichiers map
-OBJ_TD01_MAP= td01_map.o
-EXEC_TD01_MAP= td01_map.out
-
-OBJ_MAP2= map2.o
-EXEC_MAP2= map2.out
-
-# Fichiers spritz
+# Fichiers main
 OBJ_MAIN= main.o
 EXEC_MAIN= main.out
 
 # Fichiers draw
 OBJ_DRAW= draw.o
 EXEC_DRAW= draw.out
+
+OBJ_VERIFY= verify.o
+EXEC_VERIFY= verify.out
+
+OBJ_VERIFY_MAP= verifyMap.o
+EXEC_VERIFY_MAP= verifyMap.out
+
+OBJ_CREATE_MAP= createMap.o
+EXEC_CREATE_MAP= createMap.out
+
+
+
+
 
 # Regles compilation TD 01
 

@@ -453,5 +453,5 @@ bool creerCarte(bool scanMap, char * filename, ITD* itd, int dimX, int dimY){
 	// 	}
 	// 	printf("Bisous <3\n");
 	}
-	itd->dejaScanne = true;
+	//itd->dejaScanne = true;
 }

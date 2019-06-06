@@ -35,60 +35,94 @@ float traductionY(float y){
 	return -(y-300)/75.0;
 }
 
-
-
-bool estDansZoneConstructible(int X, int Y, int** zoneConstructible, int dimX, int dimY){
-    
+int traductionX_Inverse(float x){
+    return((int)75*x+400);
 }
+
+int traductionY_Inverse(float y){
+    return((int)-75*y+300);    
+}
+
+
+
+
+
+// void drawYellow(i, int nombre){
+//     for(int i=0; i<nombre){
+//         drawTowerYellow2(Xtower[i-nombre],Ytower[i-nombre]);
+//     }
+// }
+
+int i=0;
+int j=0;
+bool peutCommencer = false;
+
 static float px = 0.013333;
-static float x_in ,y_in ;
-static float x_out, y_out;
+static int x_in ,y_in, x_end, y_end ;
+static int x_out, y_out;
 static float x_1, y_1;
 static float x_2, y_2;
 static float x_4, y_4;
 
-float Xtower[100];
-float Ytower[100];
+int d_x=0;
+int d_y=0;
+
+int d_p=0;
+int deltaE=0;
+int deltaNE=0;
+
+int indiceVoisin = -1;
+
+float XtowerJaune[100];
+float YtowerJaune[100];
+
+float TowerJaune[100][2];
+float TowerRouge[100][2];
+float TowerBleu[100][2];
+float TowerVert[100][2];
+
 float Xt[100];
 float Yt[100];
-int ColorTower[100];
+//int ColorTower[100];
+int ColorTower =0;
 int Argent = 2;
 
 
 
-float PV = 100;
+float PV = 30;
+float radiusYellow2 = 4;
+float radiusBleu2 = 10;
+float radiusRed2 = 6;
+float radiusGreen2 = 4;
+
+int AtakJ = 1;
+int AtakR = 10;
+int AtakB = 5;
+int AtakV = 8;
 
 // float radiusJaune = 1;
 // float radiusBleu = 5;
 // float radiusRouge = 3;
 // float radiusVert = 2;
 
-float radiusYellow2 = 2;
-float radiusBleu2 = 10;
-float radiusRed2 = 6;
-float radiusGreen2 = 4;
-int AtakJ = 1;
-int AtakR = 10;
-int AtakB = 5;
-int AtakV = 8;
 
-static float varx = 0.;
-static float vary = 0.;
-static float varx2 = 0.;
-static float vary2 = 0.;
-static float speed = 1;
+// static float varx = 0.;
+// static float vary = 0.;
+// static float varx2 = 0.;
+// static float vary2 = 0.;
+// static float speed = 1;
 
-static float curx = -4;
-static float cury = 1;
+// static float curx = -4;
+// static float cury = 1;
 
-static float route_x = 0;
-static float route_y = 0;
+// static float route_x = 0;
+// static float route_y = 0;
 
-int current =0;
+// int current =0;
 
-static int dest1 = 1;
-static int dest2 = 2;
-static int dest3 = 3;
+// static int dest1 = 1;
+// static int dest2 = 2;
+// static int dest3 = 3;
 
 
 static float aspectRatio;
@@ -211,29 +245,47 @@ void reshape(SDL_Surface** surface, unsigned int width, unsigned int height)
 
 
 
-float norme(int x, int y, int z, int t){
-    return sqrt(((x-z)*(x-z))+((y-t)*(y-t)));
+float norme(float x1, float y1, float x2, float y2){
+    return sqrt(((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2)));
 }
 // int a=0;
 // int b=0;
 // int c=1;
 // int d=1;    
-bool estDansRayon(int x, int y, int z, int t,float rayon){
-    if (norme(x,y,z,t)<=rayon) return true;
-    else return false;
+bool estDansRayon(float x1, float y1, float x2, float y2,float rayon){
+    if (norme(x1,y1,x2,y2)<=rayon) return true;
+    return false;
 }
 
+bool estDansZoneConstructible(int X, int Y, int** zoneConstructible){
+    return(zoneConstructible[X][Y]==1);
+}
+bool zoneConstructibleEstDansCercle(int X, int Y, int** zoneConstructible, int rayon){
+    for(int i = -rayon; i<rayon+1; i++){
+        for(int j= -rayon; j<rayon+1; j++){
+            if(estDansRayon(X,Y,X+i,Y+i,rayon))
+                if(!estDansZoneConstructible(X+i,Y+j,zoneConstructible))
+                    return false;
+        }
+    }
+    return true;
+}
 
 int main(int argc, char** argv) 
-{	
+{	printf("Bonjour");
 
 	//printf("voici la distance (norme) entre les points (%d;%d) et (%d;%d)\n  N= %f",a,b,c,d,norme(a,b,c,d));
 
+	//printf("voici la distance (norme) entre les points (%d;%d) et (%d;%d)\n  N= %f",a,b,c,d,norme(a,b,c,d));
 
     ITD itd;
     scanITD("data/map1.itd",&itd);
     for(int i=0; i<itd.nombreNoeuds; i++){
         printf("- noeud %d = %d --- son type est %d\n", i+1,itd.indices[i],itd.types[i]);
+    }
+    int *tabNoeudsDejaVerifies = malloc(itd.nombreNoeuds*sizeof(int));// = {-1};//Toutes les cases du tableau sont initialisées à -1.
+    for(int i=0; i<itd.nombreNoeuds; i++){
+        tabNoeudsDejaVerifies[i]=-1;
     }
     //printf("%d\n",itd.pixelsConstructibles[1][3]);
     // for(int i=0; i<800;i++){
@@ -241,11 +293,20 @@ int main(int argc, char** argv)
     //      printf("au pixel [%d][%d] = > [%d]\n",i,j,itd.pixelsConstructibles[i][j]);
     //  }
     // }
-    //creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
-	
+    // creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
+	bool map = scanMap(itd.nameImage,&itd);
+    printf("map = %d\n",map);
+    printf("%s\n",itd.nameImage);
+    creerCarte(false,"image.ppm",&itd,800,600);
+    // printf("\n%d\n",estDansZoneConstructible(23,232,itd.pixelsConstructibles));
+    // printf("%d",itd.pixelsConstructibles[23][232]);
+	int money = 50;
+	int r = 0;
+    int v = 0;
+    int b = 0;
+    int ja = 0;
 
-	int money = 5000;
-	int i = 0;
+    int i=0;
 	int k =0;
 
 	x_in=traductionX(100.0);
@@ -259,8 +320,11 @@ int main(int argc, char** argv)
 	x_4=traductionX(400);
 	y_4=traductionY(600);
 
-	Xtower[i]=traductionX(Xtower[i]);
-	Ytower[i]=traductionX(Ytower[i]);
+
+
+	// Xtower[i]=traductionX(Xtower[i]);
+	// Ytower[i]=traductionX(Ytower[i]);
+
 	/*XtowerB=traductionX(XtowerB);
 	YtowerB=traductionX(YtowerB);*/
     /* Initialisation de la SDL */
@@ -405,30 +469,41 @@ int main(int argc, char** argv)
 
 
         if (PV > 0){
-        glPushMatrix();
-        	glTranslatef(x_in+varx, y_in+vary,0);
-        	glScalef(0.2,0.2,1);
-        	drawMonster2();
+            glPushMatrix();
+            glTranslatef(traductionX(x_in),traductionY(y_in),0);
+            glScalef(0.2,0.2,1);
+            drawMonster2();
         glPopMatrix();
-        printf("le monstre a encore %f point(s) de vie\n", PV);
-        if(ColorTower[i-1]==1)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusYellow2)) PV=PV-0.01*AtakJ;
-        if(ColorTower[i-1]==2)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusRed2)) PV=PV-0.01*AtakR;
-        if(ColorTower[i-1]==3)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusBleu2)) PV=PV-0.01*AtakB;
-        if(ColorTower[i-1]==4)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusGreen2)) PV=PV-0.01*AtakV;
+        // glPushMatrix();
+        //     glTranslatef(x_in+varx, y_in+vary,0);
+        //     glScalef(0.2,0.2,1);
+        //     drawMonster2();
+        // glPopMatrix();
+        //printf("le monstre a encore %f point(s) de vie\n", PV);
+        
+        // if(ColorTower[i-1]==1)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusYellow2)) PV=PV-0.01*AtakJ;
+        // if(ColorTower[i-1]==2)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusRed2)) PV=PV-0.01*AtakR;
+        // if(ColorTower[i-1]==3)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusBleu2)) PV=PV-0.01*AtakB;
+        // if(ColorTower[i-1]==4)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusGreen2)) PV=PV-0.01*AtakV;
+        
+        // if (estDansRayon(x_in+varx, y_in+vary,TowerJaune[ja][0],TowerJaune[ja][1],0.2*radiusYellow2)) PV=PV-0.01*AtakJ;
+        // if (estDansRayon(x_in+varx, y_in+vary,TowerRouge[r][0],TowerRouge[r][1],0.2*radiusRed2)) PV=PV-0.01*AtakR;
+        // if (estDansRayon(x_in+varx, y_in+vary,TowerBleu[b][0],TowerBleu[b][1],0.2*radiusBleu2)) PV=PV-0.01*AtakB;
+        // if (estDansRayon(x_in+varx, y_in+vary,TowerVert[v][0],TowerVert[v][1],0.2*radiusGreen2)) PV=PV-0.01*AtakV;
+
         }
+        // if (PV==0) printf("Dans la map, terrible map, le monstre est mort ce soir  OOOhimbowé");
         
 
-        
-        //if (PV==0) printf("Dans la map, terrible map, le monstre est mort ce soir  OOOhimbowé");
         drawLegende();
         
-		
         
         /* Boucle traitant les evenements */
         SDL_Event e;
 
         while(SDL_PollEvent(&e)) 
         {
+            // printf("PV = %f\n",PV);
             /* L'utilisateur ferme la fenetre : */
             if(e.type == SDL_QUIT) 
             {
@@ -441,14 +516,38 @@ int main(int argc, char** argv)
             {
                 /* Clic souris */
                 case SDL_MOUSEBUTTONUP:
-                    Xtower[i]=(-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio;
-                    Ytower[i]= -(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.;
+                    printf("\nX = %d\n",traductionX_Inverse((-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio));  
+                    printf("Y = %d\n",traductionY_Inverse(-(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.));
+                    printf("\n%d\n",estDansZoneConstructible(traductionX_Inverse((-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio), traductionY_Inverse(-(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.), itd.pixelsConstructibles));
+                    if(zoneConstructibleEstDansCercle(traductionX_Inverse((-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio), traductionY_Inverse(-(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.), itd.pixelsConstructibles,13)){
+                   // if(estDansLeCercle30Px()){
+                        if(ColorTower==1){
+                            TowerJaune[ja][0]=(-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio;
+                            TowerJaune[ja][1]= -(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.;
+                            ja++;
+                        }
+                        if(ColorTower==2){
+                            TowerRouge[r][0]=(-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio;
+                            TowerRouge[r][1]= -(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.;
+                            r++;
+                        }
+                        if(ColorTower==3){
+                            TowerBleu[b][0]=(-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio;
+                            TowerBleu[b][1]= -(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.;
+                            b++;
+                        }
+                        if(ColorTower==4){
+                            TowerVert[v][0]=(-1 + 2. * e.button.x / (float) surface->w) * GL_VIEW_SIZE / 2. * aspectRatio;
+                            TowerVert[v][1]= -(-1 + 2. * e.button.y / (float) surface->h) * GL_VIEW_SIZE / 2.;
+                            v++;
+                        } 
+                    }
+                    //}
                     //printf("clic en (%d, %d) ,,,,,i= %d \n", e.button.x, e.button.y,i);
-                    printf(" Xtower[%d] = %f \n", i,Xtower[i] );
-                    printf(" Ytower[%d] = %f \n", i,Ytower[i] );
+                    // printf(" Xtower[%d] = %f \n", i,Xtower[i] );
+                    // printf(" Ytower[%d] = %f \n", i,Ytower[i] );
                     break;
                     	
-
 
 
 
@@ -466,8 +565,10 @@ int main(int argc, char** argv)
                             if (money<5){
                                 printf("vous n'avez pas assez d'argent pour acheter la tour jaune... \n");
                                 Argent = 1;
-                            } 
-                            ColorTower[i] = 1; 
+                            }
+                            //ja++;
+                            //ColorTower[i] = 1;
+                            ColorTower = 1; 
 							goto finally;
 						case SDLK_r :
                             if (money>=10){
@@ -475,12 +576,13 @@ int main(int argc, char** argv)
                                 money = money -10;
                                 printf("Il vous reste %d euro(s)\n", money);
                                 Argent = 0;
-                            } 
+                            }
                             if (money<10) {
                                 Argent = 1;
                                 printf("vous n'avez pas assez d'argent pour acheter la tour rouge... \n");
                             }
-							ColorTower[i] = 2; 
+							//ColorTower[i] = 2; 
+                            ColorTower = 2;
 							goto finally;
 						case SDLK_v :
                             if (money>=20){
@@ -493,7 +595,8 @@ int main(int argc, char** argv)
                                 Argent = 1;
                                 printf("vous n'avez pas assez d'argent pour acheter la tour verte... \n");
                             }
-							ColorTower[i] = 4;
+							//ColorTower[i] = 4;
+                            ColorTower = 4;
 							goto finally;
 						case SDLK_b :
                             if (money>=2){
@@ -506,12 +609,13 @@ int main(int argc, char** argv)
                                 Argent = 1;
                                 printf("vous n'avez pas assez d'argent pour acheter la tour blue... \n");
                             }
-                            ColorTower[i] = 3;
+                            //ColorTower[i] = 3;
+                            ColorTower = 3;
 							goto finally;
 				
 				finally:
 					//printf(" appuye sur %c\n ", e.key.keysym.sym);	
-					printf(" ColorTower[%d] = %d \n",i,ColorTower[i]);
+					//printf(" ColorTower[%d] = %d \n",i,ColorTower[i]);
                     printf("vous avez %d euro(s) \n",money);
                     printf("argent =  %d \n",Argent );
 					
@@ -526,29 +630,65 @@ int main(int argc, char** argv)
 				default:
 					break;
 		            }
-		        }
+		
+
+        }
 		        
-			        if(ColorTower[i]==0){
-			        	drawLegende();
-			        }
-			        if(ColorTower[i-1]==1 && Argent == 0){
-			        	drawTowerYellow2(Xtower[i],Ytower[i]);
-			        	drawTowerYellow2(Xtower[i-1],Ytower[i-1]);
-			        	drawTowerYellow2(Xtower[i-2],Ytower[i-2]);
-			        	drawTowerYellow2(Xtower[i-3],Ytower[i-3]);
-			        }
-			        if(ColorTower[i-1]==2  && Argent == 0){
-			        	drawTowerRed2(Xtower[i],Ytower[i]);
-			        }
-			        if(ColorTower[i-1]==3  && Argent == 0){
-			        	drawTowerBlue2(Xtower[i],Ytower[i]);
-			        }
-			        if(ColorTower[i-1]==4  && Argent == 0){
-			        	drawTowerGreen2(Xtower[i],Ytower[i]);
-			        }
+			        // if(ColorTower[i]==0){
+			        // 	drawLegende();
+			        // }
+			        // if(ColorTower[i-1]==1 && Argent == 0){
+                   // if(ColorTower==1 && Argent == 0){
+                        for(int j=0; j<ja; j++){
+                            drawTowerYellow2(TowerJaune[j][0],TowerJaune[j][1]);
+                            if (estDansRayon(traductionX(x_in), traductionY(y_in),TowerJaune[j][0],TowerJaune[j][1],0.2*radiusYellow2)){
+                                PV=PV-0.01*AtakJ;
+                                
+                            }
+       
+                        }
+                        // drawTowerYellow2(Xtower[i],Ytower[i]);
+                        // for(int j=0; j<2; j++)
+                        // drawTowerYellow2(Xtower[j]-100,Ytower[j]+100);
+
+			        	// drawTowerYellow2(Xtower[i],Ytower[i]);
+			        	// drawTowerYellow2(Xtower[i-1],Ytower[i-1]);
+			        	// drawTowerYellow2(Xtower[i-2],Ytower[i-2]);
+			        	// drawTowerYellow2(Xtower[i-3],Ytower[i-3]);
+			      //  }
+			        // if(ColorTower[i-1]==2  && Argent == 0){
+                  //  if(ColorTower==2 && Argent == 0){
+			        	//drawTowerRed2(Xtower[i],Ytower[i]);
+			            for(int j=0; j<r; j++){
+                            if (estDansRayon(traductionX(x_in), traductionY(y_in),TowerRouge[j][0],TowerRouge[j][1],0.2*radiusRed2)) PV=PV-0.01*AtakR;
+                            drawTowerRed2(TowerRouge[j][0],TowerRouge[j][1]);
+                        }     
+                  //  }
+			        //if(ColorTower[i-1]==3  && Argent == 0){
+                 //   if(ColorTower==3 && Argent == 0){
+			        	//drawTowerBlue2(Xtower[i],Ytower[i]);
+			            for(int j=0; j<b; j++){
+                            if (estDansRayon(traductionX(x_in), traductionY(y_in),TowerBleu[j][0],TowerBleu[j][1],0.2*radiusBleu2)){
+                                PV=PV-0.01*AtakB;
+                            }
+                            drawTowerBlue2(TowerBleu[j][0],TowerBleu[j][1]);
+                        }
+               //     }
+			        //if(ColorTower[i-1]==4  && Argent == 0){
+                //    if(ColorTower==4 && Argent == 0){
+			        	//drawTowerGreen2(Xtower[i],Ytower[i]);
+			            for(int j=0; j<v; j++){
+                             if (estDansRayon(traductionX(x_in), traductionY(y_in),TowerVert[j][0],TowerVert[j][1],0.2*radiusGreen2)) PV=PV-0.01*AtakV;
+                            drawTowerGreen2(TowerVert[j][0],TowerVert[j][1]);
+                        }
+                    //}
 		    	   // if (Argent == 1) printf("vous n'avez pas assez d'argent pour construire de tour");
-
-
+       // printf("x_in = %f\n",x_in );
+        
+        // printf("x_in = %d\n",x_in);
+        // printf("y_in = %d\n",y_in);
+        // printf("x_out = %d\n",x_out);
+        // printf("y_out = %d\n",y_out);
 
 		 /* Echange du front et du back buffer : mise a jour de la fenetre */
         SDL_GL_SwapBuffers();
@@ -563,153 +703,305 @@ int main(int argc, char** argv)
         }
 
         //MoveMonster();
+       
+        //for(int i=0; i<itd.nombreNoeuds; i++){
+            if(!appartientAuTabInt(itd.indices[i],tabNoeudsDejaVerifies,itd.nombreNoeuds)){
+                  // printf("eee");
+                   if(!peutCommencer)
+            for(int k=0; k<itd.nombreNoeuds; k++){
+                printf(" pc %d\n",peutCommencer );
+                if(itd.types[itd.indices[k]] == 1){
+                    x_in=itd.coordonnees[itd.indices[k]][0];
+                    y_in=itd.coordonnees[itd.indices[k]][1];
+                    tabNoeudsDejaVerifies[i]=itd.indices[k];
+                    peutCommencer = true;
+                }
+                if(itd.types[itd.indices[k]] == 2){
+                    x_end=itd.coordonnees[itd.indices[k]][0];
+                    y_end=itd.coordonnees[itd.indices[k]][1];
+                    tabNoeudsDejaVerifies[i]=itd.indices[k];
+                    peutCommencer = true;
+                }
 
-        if (curx==x_in && cury==y_in)
-        {
-        	if (dest1==1){
-	        	route_x = x_1 - curx;
-	        	route_y = y_1 - cury;
-	        	if(varx<=route_x-px){
-	        		varx += route_x/84*speed;
-	        	}
-	        	if (varx>= route_x){
-	        		curx= x_1;
-	        		cury= y_1;
-	        		printf("arrivé en 1 depuis 0 \n");;
-	        	}
-        	}
-
-	        if (dest1==2){
-	        	route_x = x_2 - curx;
-	        	route_y = y_2 - cury;
-	        	if(varx<=route_x-px && vary<=route_y-px){
-	        		varx += route_x/100;
-	        		vary += route_y/100;
-	        	}
-	        	if(varx>=route_x-0.001 && vary>=route_y-0.001){
-	        		curx= x_2;
-	        		cury= y_2;
-	        		printf("arrivé en 2 depuis 0 \n");
-	        	}
-	        }
-	        if (dest1==4){
-	        	route_x = x_4 - curx;
-	        	route_y = y_4 - cury;
-	        	if(varx<=route_x-px && vary>=route_y-px){
-	        		varx += route_x/126*speed;
-	        		vary += route_y/126;
-	        	}
-	        	if(varx>=route_x-0.001 && vary>=route_y-0.001){
-	        		curx= x_4;
-	        		cury= y_4;
-	        		printf("arrivé en 4 depuis 0 \n");
-	        	}
-	        }
+            }
         }
+                   // tabNoeudsDejaVerifies[i]=itd->indices[i];
+            
+
+            for(int j=0; j<itd.nombreNoeudsVoisins[i]; j++){
+                if(!appartientAuTabInt(itd.voisins[i][j],tabNoeudsDejaVerifies,itd.nombreNoeuds)){
+                    //tabNoeudsDejaVerifies[]=itd.voisins[i][j];
+                    // if(itd->coordonnees[itd->indices[i]][0]  <  itd->coordonnees[itd->voisins[i][j]][0]){
+
+                    //     X_0_Cercle = itd->coordonnees[itd->indices[i]][0] + decalageX/*-1*/ ;//on rajoute -1 pour que le premier passage du while le ramène à sa bonne valeur.
+                    //     Y_0_Cercle = itd->coordonnees[itd->indices[i]][1] + decalageY;
+
+                    //     X_1_Cercle = itd->coordonnees[itd->voisins[i][j]][0] + decalageX;//coordonnées des voisins du noeud (X_0, Y_0).
+                    //     Y_1_Cercle = itd->coordonnees[itd->voisins[i][j]][1] + decalageY;
+                    // }
+                    // else{
+
+                    //     X_1_Cercle = itd->coordonnees[itd->indices[i]][0] + decalageX;
+                    //     Y_1_Cercle = itd->coordonnees[itd->indices[i]][1] + decalageY;
+
+                    //     X_0_Cercle = itd->coordonnees[itd->voisins[i][j]][0] + decalageX/*-1*/;//coordonnées des voisins du noeud (X_0, Y_0). //on rajoute -1 pour que le premier passage du while le ramène à sa bonne valeur.
+                    //     Y_0_Cercle = itd->coordonnees[itd->voisins[i][j]][1] + decalageY;
+                    // }
+                    x_out=itd.coordonnees[itd.voisins[i][j]][0];
+                    y_out=itd.coordonnees[itd.voisins[i][j]][1];
+                    
+                    indiceVoisin = itd.voisins[i][j];
+                    // printf("ib = %d\n",indiceVoisin);
+                    break;
+                }
+            }
+
+                    if(x_in <= x_out){
+                        d_x = x_out - x_in;
+                        d_y = y_in - y_out;
+
+                        if(d_x >=0){
+                            if(d_x >= abs(d_y)){
+                                d_p = 2 * d_y - d_x;
+                                deltaE = 2 * d_y;
+                                deltaNE = 2 * (d_y - d_x);   
+                                
+                                if(x_in < x_out){
+                                    if(d_p <= 0){//cela signifie que l'on va choisir le pixel Est.
+                                        d_p += deltaE;
+                                        x_in++;
+                                        
+
+                                        
+                                    }
+                                    else{//on choisit le pixel Nord-Est.
+                                        d_p += deltaNE;
+                                        x_in++;
+                                        y_in--;//on remonte.
+                                    }
+                                }
+                            }
+                            else{
+                                d_p = 2 * d_x - d_y;
+                                deltaE = 2 * d_x;
+                                deltaNE = 2 * (d_x - d_y);
+                            
+                                if(y_in > y_out){
+                                    if(d_p<=0){
+                                        d_p += deltaE;
+                                        y_in--;
+                                    }
+                                    else{
+                                        d_p += deltaNE;
+                                        x_in++;
+                                        y_in--;
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            if(d_x >= abs(d_y)){
+                                d_p = 2 * (-d_y) - d_x;
+                                deltaE = 2 * (-d_y);
+                                deltaNE = 2 * (-d_y - d_x);
+                            
+                                if(x_in < x_out){
+                                    // interrupteur = false;
+                                    if(d_p <= 0){//cela signifie que l'on va choisir le pixel Est.
+                                        d_p += deltaE;
+                                        x_in++;
+                                    }
+                                    else{//on choisit le pixel Nord-Est.
+                                        d_p += deltaNE;
+                                        x_in++;
+                                        y_in++;//on remonte.
+                                    }
+                                }
+                            }
+                            else{
+                                d_p = 2 * d_x + d_y;
+                                deltaE = 2 * d_x;
+                                deltaNE = 2 * (d_x + d_y);
+                            
+                                if(y_in < y_out){
+                                    if(d_p <= 0){//cela signifie que l'on va choisir le pixel Est.
+                                        d_p += deltaE;
+                                        y_in++;
+                                }
+                                    else{//on choisit le pixel Nord-Est.
+                                        d_p += deltaNE;
+                                        x_in++;
+                                        y_in++;//on remonte.
+                                    }
+                                }
+                            }
+
+                        }
+
+
+                    }
+
+                }
+            //}
+        i++;
+        if(i==itd.nombreNoeuds-1)
+            i=0;
+        if(x_in == x_out){
+            tabNoeudsDejaVerifies[i]=indiceVoisin;
+            i=0;
+            printf("HELLLOOO !!");
+            
+        }
+        // if(PV <0 && x_in < x_end){
+        //     printf("VOUS AVEZ GAGNÉ !!!! \n");
+        // }
+
+        // if (curx==x_in && cury==y_in){
+        // // {printf("za\n");
+        // 	if (dest1==1){
+	       //  	route_x = x_1 - curx;
+	       //  	route_y = y_1 - cury;
+	       //  	if(varx<=route_x-px){
+	       //  		varx += route_x/84*speed;
+	       //  	}
+	       //  	if (varx>= route_x){
+	       //  		curx= x_1;
+	       //  		cury= y_1;
+	       //  		printf("arrivé en 1 depuis 0 \n");;
+	       //  	}
+        // 	}
+
+	       //  if (dest1==2){
+	       //  	route_x = x_2 - curx;
+	       //  	route_y = y_2 - cury;
+	       //  	if(varx<=route_x-px && vary<=route_y-px){
+	       //  		varx += route_x/100;
+	       //  		vary += route_y/100;
+	       //  	}
+	       //  	if(varx>=route_x-0.001 && vary>=route_y-0.001){
+	       //  		curx= x_2;
+	       //  		cury= y_2;
+	       //  		printf("arrivé en 2 depuis 0 \n");
+	       //  	}
+	       //  }
+	       //  if (dest1==4){
+	       //  	route_x = x_4 - curx;
+	       //  	route_y = y_4 - cury;
+	       //  	if(varx<=route_x-px && vary>=route_y-px){
+	       //  		varx += route_x/126*speed;
+	       //  		vary += route_y/126;
+	       //  	}
+	       //  	if(varx>=route_x-0.001 && vary>=route_y-0.001){
+	       //  		curx= x_4;
+	       //  		cury= y_4;
+	       //  		printf("arrivé en 4 depuis 0 \n");
+	       //  	}
+	       //  }
+        // }
          
-        if (curx==x_2 && cury==y_2){
+        // if (curx==x_2 && cury==y_2){
         	
-        	if (dest2 == 1){
-        		route_x = x_1 - curx;
-        		route_y = y_1 - cury;
-        		if(varx2<=route_x && vary2>=route_y+px){
-	        		varx += route_x/45*speed;
-	        		vary2 += route_y/45*speed;
-	        	}
-	        	if(varx2==route_x && vary2==route_y){
-	        		curx= x_1;
-	        		cury= y_1;
-	        		printf("arrivé en 1 depuis 2 \n");
-	        	}
-	        	varx=varx2+(x_2-x_in);
-	        	vary=vary2+(y_2-y_in);
-        	}
-        	if (dest2 == 3 ){
-        		route_x = x_out - curx;
-        		route_y = y_out - cury;
-        		if(varx2<=route_x-px && vary2>=route_y){
-	        		varx2 += route_x/100*speed;
-	        		vary2 += route_y/100*speed;
-	        	}
-	        	if(varx2>=route_x-px && vary2<=route_y+px){
-	        		curx= x_out;
-	        		cury= y_out;
-	        		printf("arrivé en 3 depuis 2 \n");
-	        	}
-	        	varx=varx2+(x_2-x_in);
-	        	vary=vary2+(y_2-y_in);
-        	}
+        // 	if (dest2 == 1){
+        // 		route_x = x_1 - curx;
+        // 		route_y = y_1 - cury;
+        // 		if(varx2<=route_x && vary2>=route_y+px){
+	       //  		varx += route_x/45*speed;
+	       //  		vary2 += route_y/45*speed;
+	       //  	}
+	       //  	if(varx2==route_x && vary2==route_y){
+	       //  		curx= x_1;
+	       //  		cury= y_1;
+	       //  		printf("arrivé en 1 depuis 2 \n");
+	       //  	}
+	       //  	varx=varx2+(x_2-x_in);
+	       //  	vary=vary2+(y_2-y_in);
+        // 	}
+        // 	if (dest2 == 3 ){
+        // 		route_x = x_out - curx;
+        // 		route_y = y_out - cury;
+        // 		if(varx2<=route_x-px && vary2>=route_y){
+	       //  		varx2 += route_x/100*speed;
+	       //  		vary2 += route_y/100*speed;
+	       //  	}
+	       //  	if(varx2>=route_x-px && vary2<=route_y+px){
+	       //  		curx= x_out;
+	       //  		cury= y_out;
+	       //  		printf("arrivé en 3 depuis 2 \n");
+	       //  	}
+	       //  	varx=varx2+(x_2-x_in);
+	       //  	vary=vary2+(y_2-y_in);
+        // 	}
         	
-        }
+        // }
         
-        if (curx==x_4 && cury==y_4){
-        	if (dest2 == 3){
-        		route_x = x_out - curx;
-        		route_y = y_out - cury;
-        		if(varx2<=route_x && vary2<=route_y-px){
-	        		varx2 += route_x/126*speed;
-	        		vary2 += route_y/126*speed;
-	        	}
-	        	if(varx2>=route_x && vary2>=route_y-px){
-	        		curx= x_out;
-	        		cury= y_out;
-	        		printf("arrivé en 3 depuis 4 \n");
-	        	}
-	        	varx=varx2+(x_1-x_in);
-	        	vary=vary2-4;
+        // if (curx==x_4 && cury==y_4){
+        // 	if (dest2 == 3){
+        // 		route_x = x_out - curx;
+        // 		route_y = y_out - cury;
+        // 		if(varx2<=route_x && vary2<=route_y-px){
+	       //  		varx2 += route_x/126*speed;
+	       //  		vary2 += route_y/126*speed;
+	       //  	}
+	       //  	if(varx2>=route_x && vary2>=route_y-px){
+	       //  		curx= x_out;
+	       //  		cury= y_out;
+	       //  		printf("arrivé en 3 depuis 4 \n");
+	       //  	}
+	       //  	varx=varx2+(x_1-x_in);
+	       //  	vary=vary2-4;
 
-        	}	        	
-        }
-        if (dest3 == 3){
-        	if(dest2==2 && (curx==x_2 && cury==y_2)){
-        		route_x = x_out - curx;
-        		route_y = y_out - cury;
-        		if(varx2<=route_x-px && vary2>=route_y-px){
-	        		varx2 += route_x/100*speed;
-	        		vary2 += route_y/100*speed;
-	        	}
-	        	if(varx2>=route_x-px && vary2>=route_y-px){
-	        		curx= x_out;
-	        		cury= y_out;
-	        		printf("arrivé en 3 depuis 2(et1)\n");
-	        	}
-	        	varx=varx2+(x_2-x_in);
-	        	vary=vary2;
-        	}
-        	if(dest2==1 && (curx==x_1 && cury==y_1)){
-        		route_x = x_out - curx;
-        		route_y = y_out - cury;
-        		if(varx2<=route_x-px && vary2<=route_y){
-	        		varx2 += route_x/84*speed;
-	        		vary2 += route_y/84*speed;
-	        	}
-	        	if(varx2>=route_x && vary2==route_y-2){
-	        		curx= x_out;
-	        		cury= y_out;
-	        		printf("arrivé en 3 depuis 1(et2) \n");
-	        	}
-	        	varx=varx2+(x_2-x_in);
-	        	vary=vary2+(y_2-y_in);
-        	}
-        	if(dest2==4 && (curx==x_4 && cury==y_4)){
-        		route_x = x_out - curx;
-        		route_y = y_out - cury;
-        		if(varx2<=route_x-px && vary2<=route_y){
-	        		varx2 += route_x/84*speed;
-	        		vary2 += route_y/84*speed;
-	        	}
-	        	if(varx2>=route_x && vary2==route_y-2){
-	        		curx= x_out;
-	        		cury= y_out;
-	        		printf("arrivé en 3 depuis 4(et1) \n");
-	        	}
-	        	varx=varx2+(x_2-x_in);
-	        	vary=vary2+(y_2-y_in);
-        	}
-        }
+        // 	}	        	
+        // }
+        // if (dest3 == 3){
+        // 	if(dest2==2 && (curx==x_2 && cury==y_2)){
+        // 		route_x = x_out - curx;
+        // 		route_y = y_out - cury;
+        // 		if(varx2<=route_x-px && vary2>=route_y-px){
+	       //  		varx2 += route_x/100*speed;
+	       //  		vary2 += route_y/100*speed;
+	       //  	}
+	       //  	if(varx2>=route_x-px && vary2>=route_y-px){
+	       //  		curx= x_out;
+	       //  		cury= y_out;
+	       //  		printf("arrivé en 3 depuis 2(et1)\n");
+	       //  	}
+	       //  	varx=varx2+(x_2-x_in);
+	       //  	vary=vary2;
+        // 	}
+        // 	if(dest2==1 && (curx==x_1 && cury==y_1)){
+        // 		route_x = x_out - curx;
+        // 		route_y = y_out - cury;
+        // 		if(varx2<=route_x-px && vary2<=route_y){
+	       //  		varx2 += route_x/84*speed;
+	       //  		vary2 += route_y/84*speed;
+	       //  	}
+	       //  	if(varx2>=route_x && vary2==route_y-2){
+	       //  		curx= x_out;
+	       //  		cury= y_out;
+	       //  		printf("arrivé en 3 depuis 1(et2) \n");
+	       //  	}
+	       //  	varx=varx2+(x_2-x_in);
+	       //  	vary=vary2+(y_2-y_in);
+        // 	}
+        // 	if(dest2==4 && (curx==x_4 && cury==y_4)){
+        // 		route_x = x_out - curx;
+        // 		route_y = y_out - cury;
+        // 		if(varx2<=route_x-px && vary2<=route_y){
+	       //  		varx2 += route_x/84*speed;
+	       //  		vary2 += route_y/84*speed;
+	       //  	}
+	       //  	if(varx2>=route_x && vary2==route_y-2){
+	       //  		curx= x_out;
+	       //  		cury= y_out;
+	       //  		printf("arrivé en 3 depuis 4(et1) \n");
+	       //  	}
+	       //  	varx=varx2+(x_2-x_in);
+	       //  	vary=vary2+(y_2-y_in);
+        // 	}
+        // }
         
 
-    }
+    
 
 
     
@@ -727,6 +1019,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 
 }
+
 
 
 

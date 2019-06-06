@@ -32,7 +32,7 @@ bool estDansLeRect(int largeur, int hauteur, int X_Cercle, int Y_Cercle, int dim
 }
 
 bool scanMap(char * filename, ITD* itd){
-	if(!(itd->dejaScanne)){
+	//if(!(itd->dejaScanne)){
 		FILE *myFile = NULL;
 		char caractere ='.';
 		char caracterePrecedent = '.';
@@ -645,6 +645,6 @@ bool scanMap(char * filename, ITD* itd){
 
 		printf("\nLa carte est valide !!!!!!!!!!!!!!!\n");
 		return true;
-	}
-	return false;
+	//}
+	// return false;
 }
