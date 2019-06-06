@@ -9,9 +9,6 @@
 #include <string.h>
 
 
-
-
-
 float traductionX(float x);
 float traductionY(float y);
 void MoveMonster();
