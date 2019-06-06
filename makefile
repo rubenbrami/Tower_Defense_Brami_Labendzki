@@ -27,9 +27,7 @@ EXEC_CREATE_MAP= createMap.out
 
 
 
-
-
-# Regles compilation TD 01
+# Regles compilation
 
 all :
 
@@ -44,6 +42,16 @@ main : $(OBJDIR)$(OBJ_MAIN)
 
 draw : $(OBJDIR)$(OBJ_DRAW)
 	$(CC) $(CFLAGS) $(OBJDIR)$(OBJ_DRAW) -o $(BINDIR)$(EXEC_DRAW) $(LDFLAGS)
+
+verify : $(OBJDIR)$(OBJ_VERIFY)
+	$(CC) $(CFLAGS) $(OBJDIR)$(OBJ_VERIFY) -o $(BINDIR)$(EXEC_VERIFY) $(LDFLAGS)
+
+verifyMap : $(OBJDIR)$(OBJ_VERIFY_MAP)
+	$(CC) $(CFLAGS) $(OBJDIR)$(OBJ_VERIFY_MAP) -o $(BINDIR)$(EXEC_VERIFY_MAP) $(LDFLAGS)
+	
+createMap : $(OBJDIR)$(OBJ_CREATE_MAP)
+	$(CC) $(CFLAGS) $(OBJDIR)$(OBJ_CREATE_MAP) -o $(BINDIR)$(EXEC_CREATE_MAP) $(LDFLAGS)
+
 
 clean :
 	rm -rf *~
