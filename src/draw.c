@@ -12,10 +12,10 @@
 
 #include "draw.h"
 
-// float radiusJaune = 2;
-// float radiusBleu = 10;
-// float radiusRouge = 6;
-// float radiusVert = 4;
+float radiusJaune = 2;
+float radiusBleu = 10;
+float radiusRouge = 6;
+float radiusVert = 4;
 
 // static float aspectRatio;
 

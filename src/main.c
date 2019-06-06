@@ -53,10 +53,10 @@ int Argent = 2;
 int Atak = 2;
 int PV = 100;
 
-float radiusJaune = 1;
-float radiusBleu = 5;
-float radiusRouge = 3;
-float radiusVert = 2;
+// float radiusJaune = 1;
+// float radiusBleu = 5;
+// float radiusRouge = 3;
+// float radiusVert = 2;
 
 
 static float varx = 0.;
@@ -206,15 +206,15 @@ float norme(int x, int y, int z, int t){
 // int c=1;
 // int d=1;    
 bool estDansRayon(int x, int y, int z, int t,int rayon){
-    if (norme(x,y,z,t)<=rayon)
+    if (norme(x,y,z,t)<=rayon);
 }
 
 
 int main(int argc, char** argv) 
 {	
-<<<<<<< HEAD
+
 	//printf("voici la distance (norme) entre les points (%d;%d) et (%d;%d)\n  N= %f",a,b,c,d,norme(a,b,c,d));
-=======
+
 
     ITD itd;
     scanITD("data/map1.itd",&itd);
@@ -229,7 +229,7 @@ int main(int argc, char** argv)
     // }
     creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
 	
->>>>>>> master
+
 	int money = 50;
 	int i = 0;
 	int k =0;
