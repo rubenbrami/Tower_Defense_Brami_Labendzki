@@ -55,14 +55,22 @@ int ColorTower[100];
 int Argent = 2;
 
 
-int Atak = 2;
-int PV = 100;
+
+float PV = 100;
 
 // float radiusJaune = 1;
 // float radiusBleu = 5;
 // float radiusRouge = 3;
 // float radiusVert = 2;
 
+float radiusYellow2 = 2;
+float radiusBleu2 = 10;
+float radiusRed2 = 6;
+float radiusGreen2 = 4;
+int AtakJ = 1;
+int AtakR = 10;
+int AtakB = 5;
+int AtakV = 8;
 
 static float varx = 0.;
 static float vary = 0.;
@@ -210,8 +218,9 @@ float norme(int x, int y, int z, int t){
 // int b=0;
 // int c=1;
 // int d=1;    
-bool estDansRayon(int x, int y, int z, int t,int rayon){
-    if (norme(x,y,z,t)<=rayon);
+bool estDansRayon(int x, int y, int z, int t,float rayon){
+    if (norme(x,y,z,t)<=rayon) return true;
+    else return false;
 }
 
 
@@ -232,10 +241,10 @@ int main(int argc, char** argv)
     //      printf("au pixel [%d][%d] = > [%d]\n",i,j,itd.pixelsConstructibles[i][j]);
     //  }
     // }
-    creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
+    //creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
 	
 
-	int money = 50;
+	int money = 5000;
 	int i = 0;
 	int k =0;
 
@@ -401,14 +410,16 @@ int main(int argc, char** argv)
         	glScalef(0.2,0.2,1);
         	drawMonster2();
         glPopMatrix();
-        printf("le monstre a encore %d point(s) de vie\n", PV);
-        PV=PV-0.5;
+        printf("le monstre a encore %f point(s) de vie\n", PV);
+        if(ColorTower[i-1]==1)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusYellow2)) PV=PV-0.01*AtakJ;
+        if(ColorTower[i-1]==2)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusRed2)) PV=PV-0.01*AtakR;
+        if(ColorTower[i-1]==3)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusBleu2)) PV=PV-0.01*AtakB;
+        if(ColorTower[i-1]==4)if (estDansRayon(x_in+varx, y_in+vary,Xtower[i],Ytower[i],0.2*radiusGreen2)) PV=PV-0.01*AtakV;
         }
+        
 
-        if (x_in+varx<(Xtower[i]+10*traductionX(radiusRouge)) && x_in+varx> (Xtower[i]-10*traductionX(radiusRouge)) &&  y_in+vary<(Ytower[i]+10*traductionX(radiusRouge)) && y_in+vary> (Ytower[i]-10*traductionX(radiusRouge))){
-            PV= PV-Atak;
-        }
-        if (PV==0) printf("Dans la map, terrible map, le monstre est mort ce soir  OOOhimbowé");
+        
+        //if (PV==0) printf("Dans la map, terrible map, le monstre est mort ce soir  OOOhimbowé");
         drawLegende();
         
 		
