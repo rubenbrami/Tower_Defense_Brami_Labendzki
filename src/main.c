@@ -30,12 +30,12 @@ float traductionY(float y){
 	return -(y-300)/75.0;
 }
 
-// static float px = 0.013333;
+static float px = 0.013333;
 static float x_in ,y_in ;
-// static float x_out, y_out;
-// static float x_1, y_1;
-// static float x_2, y_2;
-// static float x_4, y_4;
+static float x_out, y_out;
+static float x_1, y_1;
+static float x_2, y_2;
+static float x_4, y_4;
 
 float Xtower[100];
 float Ytower[100];
@@ -43,31 +43,34 @@ float Xt[100];
 float Yt[100];
 int ColorTower[100];
 int Argent = 2;
-/*float XtowerB;
-float YtowerB;*/
-// float radiusJaune = 2;
-// float radiusBleu = 10;
-// float radiusRouge = 6;
-// float radiusVert = 4;
+
+
+int Atak = 2;
+int PV = 100;
+
+float radiusJaune = 1;
+float radiusBleu = 5;
+float radiusRouge = 3;
+float radiusVert = 2;
 
 
 static float varx = 0.;
 static float vary = 0.;
-// static float varx2 = 0.;
-// static float vary2 = 0.;
-// static float speed = 1;
+static float varx2 = 0.;
+static float vary2 = 0.;
+static float speed = 1;
 
 static float curx = -4;
 static float cury = 1;
 
-// static float route_x = 0;
-// static float route_y = 0;
+static float route_x = 0;
+static float route_y = 0;
 
-// int current =0;
+int current =0;
 
-// static int dest1 = 4;
-// static int dest2 = 3;
-// static int dest3 = 3;
+static int dest1 = 1;
+static int dest2 = 2;
+static int dest3 = 3;
 
 
 static float aspectRatio;
@@ -189,23 +192,36 @@ void reshape(SDL_Surface** surface, unsigned int width, unsigned int height)
 // }
 
 
+
+float norme(int x, int y, int z, int t){
+    return sqrt(((x-z)*(x-z))+((y-t)*(y-t)));
+}
+// int a=0;
+// int b=0;
+// int c=1;
+// int d=1;    
+bool estDansRayon(int x, int y, int z, int t,int rayon){
+    if (norme(x,y,z,t)<=rayon)
+}
+
+
 int main(int argc, char** argv) 
 {	
-	
+	//printf("voici la distance (norme) entre les points (%d;%d) et (%d;%d)\n  N= %f",a,b,c,d,norme(a,b,c,d));
 	int money = 50;
 	int i = 0;
 	int k =0;
 
 	x_in=traductionX(100.0);
-	y_in=traductionY(225.0);
-	// x_out=traductionX(700.0);
-	// y_out=traductionY(225.0);
-	// x_1=traductionX(400.0);
-	// y_1=traductionY(225.0);
-	// x_2=traductionX(400.0);
-	// y_2=traductionY(75.0);
-	// x_4=traductionX(400);
-	// y_4=traductionY(525);
+	y_in=traductionY(300.0);
+	x_out=traductionX(700.0);
+	y_out=traductionY(300.0);
+	x_1=traductionX(400.0);
+	y_1=traductionY(300.0);
+	x_2=traductionX(400.0);
+	y_2=traductionY(150.0);
+	x_4=traductionX(400);
+	y_4=traductionY(600);
 
 	Xtower[i]=traductionX(Xtower[i]);
 	Ytower[i]=traductionX(Ytower[i]);
@@ -348,12 +364,20 @@ int main(int argc, char** argv)
         
 
 
+        if (PV > 0){
         glPushMatrix();
         	glTranslatef(x_in+varx, y_in+vary,0);
         	glScalef(0.2,0.2,1);
         	drawMonster2();
         glPopMatrix();
+        printf("le monstre a encore %d point(s) de vie\n", PV);
+        PV=PV-0.5;
+        }
 
+        if (x_in+varx<(Xtower[i]+10*traductionX(radiusRouge)) && x_in+varx> (Xtower[i]-10*traductionX(radiusRouge)) &&  y_in+vary<(Ytower[i]+10*traductionX(radiusRouge)) && y_in+vary> (Ytower[i]-10*traductionX(radiusRouge))){
+            PV= PV-Atak;
+        }
+        if (PV==0) printf("Dans la map, terrible map, le monstre est mort ce soir  OOOhimbowé");
         drawLegende();
         
 		
@@ -498,153 +522,149 @@ int main(int argc, char** argv)
 
         //MoveMonster();
 
+        if (curx==x_in && cury==y_in)
+        {
+        	if (dest1==1){
+	        	route_x = x_1 - curx;
+	        	route_y = y_1 - cury;
+	        	if(varx<=route_x-px){
+	        		varx += route_x/84*speed;
+	        	}
+	        	if (varx>= route_x){
+	        		curx= x_1;
+	        		cury= y_1;
+	        		printf("arrivé en 1 depuis 0 \n");;
+	        	}
+        	}
 
-
-
-
-        // if (curx==x_in && cury==y_in)
-        // {
-        // 	if (dest1==1){
-	       //  	route_x = x_1 - curx;
-	       //  	route_y = y_1 - cury;
-	       //  	if(varx<=route_x-px){
-	       //  		varx += route_x/84*speed;
-	       //  	}
-	       //  	if (varx>= route_x){
-	       //  		curx= x_1;
-	       //  		cury= y_1;
-	       //  		printf("arrivé en 1 depuis 0 \n");;
-	       //  	}
-        // 	}
-
-	       //  if (dest1==2){
-	       //  	route_x = x_2 - curx;
-	       //  	route_y = y_2 - cury;
-	       //  	if(varx<=route_x-px && vary<=route_y-px){
-	       //  		varx += route_x/100;
-	       //  		vary += route_y/100;
-	       //  	}
-	       //  	if(varx>=route_x-0.001 && vary>=route_y-0.001){
-	       //  		curx= x_2;
-	       //  		cury= y_2;
-	       //  		printf("arrivé en 2 depuis 0 \n");
-	       //  	}
-	       //  }
-	       //  if (dest1==4){
-	       //  	route_x = x_4 - curx;
-	       //  	route_y = y_4 - cury;
-	       //  	if(varx<=route_x-px && vary>=route_y-px){
-	       //  		varx += route_x/126*speed;
-	       //  		vary += route_y/126;
-	       //  	}
-	       //  	if(varx>=route_x-0.001 && vary>=route_y-0.001){
-	       //  		curx= x_4;
-	       //  		cury= y_4;
-	       //  		printf("arrivé en 4 depuis 0 \n");
-	       //  	}
-	       //  }
-        // }
+	        if (dest1==2){
+	        	route_x = x_2 - curx;
+	        	route_y = y_2 - cury;
+	        	if(varx<=route_x-px && vary<=route_y-px){
+	        		varx += route_x/100;
+	        		vary += route_y/100;
+	        	}
+	        	if(varx>=route_x-0.001 && vary>=route_y-0.001){
+	        		curx= x_2;
+	        		cury= y_2;
+	        		printf("arrivé en 2 depuis 0 \n");
+	        	}
+	        }
+	        if (dest1==4){
+	        	route_x = x_4 - curx;
+	        	route_y = y_4 - cury;
+	        	if(varx<=route_x-px && vary>=route_y-px){
+	        		varx += route_x/126*speed;
+	        		vary += route_y/126;
+	        	}
+	        	if(varx>=route_x-0.001 && vary>=route_y-0.001){
+	        		curx= x_4;
+	        		cury= y_4;
+	        		printf("arrivé en 4 depuis 0 \n");
+	        	}
+	        }
+        }
          
-        // if (curx==x_2 && cury==y_2){
+        if (curx==x_2 && cury==y_2){
         	
-        // 	if (dest2 == 1){
-        // 		route_x = x_1 - curx;
-        // 		route_y = y_1 - cury;
-        // 		if(varx2<=route_x && vary2>=route_y+px){
-	       //  		varx += route_x/45*speed;
-	       //  		vary2 += route_y/45*speed;
-	       //  	}
-	       //  	if(varx2==route_x && vary2==route_y){
-	       //  		curx= x_1;
-	       //  		cury= y_1;
-	       //  		printf("arrivé en 1 depuis 2 \n");
-	       //  	}
-	       //  	varx=varx2+(x_2-x_in);
-	       //  	vary=vary2+(y_2-y_in);
-        // 	}
-        // 	if (dest2 == 3 ){
-        // 		route_x = x_out - curx;
-        // 		route_y = y_out - cury;
-        // 		if(varx2<=route_x-px && vary2>=route_y){
-	       //  		varx2 += route_x/100*speed;
-	       //  		vary2 += route_y/100*speed;
-	       //  	}
-	       //  	if(varx2>=route_x-px && vary2<=route_y+px){
-	       //  		curx= x_out;
-	       //  		cury= y_out;
-	       //  		printf("arrivé en 3 depuis 2 \n");
-	       //  	}
-	       //  	varx=varx2+(x_2-x_in);
-	       //  	vary=vary2+(y_2-y_in);
-        // 	}
+        	if (dest2 == 1){
+        		route_x = x_1 - curx;
+        		route_y = y_1 - cury;
+        		if(varx2<=route_x && vary2>=route_y+px){
+	        		varx += route_x/45*speed;
+	        		vary2 += route_y/45*speed;
+	        	}
+	        	if(varx2==route_x && vary2==route_y){
+	        		curx= x_1;
+	        		cury= y_1;
+	        		printf("arrivé en 1 depuis 2 \n");
+	        	}
+	        	varx=varx2+(x_2-x_in);
+	        	vary=vary2+(y_2-y_in);
+        	}
+        	if (dest2 == 3 ){
+        		route_x = x_out - curx;
+        		route_y = y_out - cury;
+        		if(varx2<=route_x-px && vary2>=route_y){
+	        		varx2 += route_x/100*speed;
+	        		vary2 += route_y/100*speed;
+	        	}
+	        	if(varx2>=route_x-px && vary2<=route_y+px){
+	        		curx= x_out;
+	        		cury= y_out;
+	        		printf("arrivé en 3 depuis 2 \n");
+	        	}
+	        	varx=varx2+(x_2-x_in);
+	        	vary=vary2+(y_2-y_in);
+        	}
         	
-        // }
+        }
         
-        // if (curx==x_4 && cury==y_4){
-        // 	if (dest2 == 3){
-        // 		route_x = x_out - curx;
-        // 		route_y = y_out - cury;
-        // 		if(varx2<=route_x && vary2<=route_y-px){
-	       //  		varx2 += route_x/126*speed;
-	       //  		vary2 += route_y/126*speed;
-	       //  	}
-	       //  	if(varx2>=route_x && vary2>=route_y-px){
-	       //  		curx= x_out;
-	       //  		cury= y_out;
-	       //  		printf("arrivé en 3 depuis 4 \n");
-	       //  	}
-	       //  	varx=varx2+(x_1-x_in);
-	       //  	vary=vary2-4;
+        if (curx==x_4 && cury==y_4){
+        	if (dest2 == 3){
+        		route_x = x_out - curx;
+        		route_y = y_out - cury;
+        		if(varx2<=route_x && vary2<=route_y-px){
+	        		varx2 += route_x/126*speed;
+	        		vary2 += route_y/126*speed;
+	        	}
+	        	if(varx2>=route_x && vary2>=route_y-px){
+	        		curx= x_out;
+	        		cury= y_out;
+	        		printf("arrivé en 3 depuis 4 \n");
+	        	}
+	        	varx=varx2+(x_1-x_in);
+	        	vary=vary2-4;
 
-        // 	}	        	
-        // }
-        // if (dest3 == 3){
-        // 	if(dest2==2 && (curx==x_2 && cury==y_2)){
-        // 		route_x = x_out - curx;
-        // 		route_y = y_out - cury;
-        // 		if(varx2<=route_x-px && vary2>=route_y-px){
-	       //  		varx2 += route_x/100*speed;
-	       //  		vary2 += route_y/100*speed;
-	       //  	}
-	       //  	if(varx2>=route_x-px && vary2>=route_y-px){
-	       //  		curx= x_out;
-	       //  		cury= y_out;
-	       //  		printf("arrivé en 3 depuis 2(et1)\n");
-	       //  	}
-	       //  	varx=varx2+(x_2-x_in);
-	       //  	vary=vary2;
-        // 	}
-        // 	if(dest2==1 && (curx==x_1 && cury==y_1)){
-        // 		route_x = x_out - curx;
-        // 		route_y = y_out - cury;
-        // 		if(varx2<=route_x-px && vary2<=route_y){
-	       //  		varx2 += route_x/84*speed;
-	       //  		vary2 += route_y/84*speed;
-	       //  	}
-	       //  	if(varx2>=route_x && vary2==route_y-2){
-	       //  		curx= x_out;
-	       //  		cury= y_out;
-	       //  		printf("arrivé en 3 depuis 1(et2) \n");
-	       //  	}
-	       //  	varx=varx2+(x_2-x_in);
-	       //  	vary=vary2+(y_2-y_in);
-        // 	}
-        // 	if(dest2==4 && (curx==x_4 && cury==y_4)){
-        // 		route_x = x_out - curx;
-        // 		route_y = y_out - cury;
-        // 		if(varx2<=route_x-px && vary2<=route_y){
-	       //  		varx2 += route_x/84*speed;
-	       //  		vary2 += route_y/84*speed;
-	       //  	}
-	       //  	if(varx2>=route_x && vary2==route_y-2){
-	       //  		curx= x_out;
-	       //  		cury= y_out;
-	       //  		printf("arrivé en 3 depuis 4(et1) \n");
-	       //  	}
-	       //  	varx=varx2+(x_2-x_in);
-	       //  	vary=vary2+(y_2-y_in);
-        // 	}
-        // }
+        	}	        	
+        }
+        if (dest3 == 3){
+        	if(dest2==2 && (curx==x_2 && cury==y_2)){
+        		route_x = x_out - curx;
+        		route_y = y_out - cury;
+        		if(varx2<=route_x-px && vary2>=route_y-px){
+	        		varx2 += route_x/100*speed;
+	        		vary2 += route_y/100*speed;
+	        	}
+	        	if(varx2>=route_x-px && vary2>=route_y-px){
+	        		curx= x_out;
+	        		cury= y_out;
+	        		printf("arrivé en 3 depuis 2(et1)\n");
+	        	}
+	        	varx=varx2+(x_2-x_in);
+	        	vary=vary2;
+        	}
+        	if(dest2==1 && (curx==x_1 && cury==y_1)){
+        		route_x = x_out - curx;
+        		route_y = y_out - cury;
+        		if(varx2<=route_x-px && vary2<=route_y){
+	        		varx2 += route_x/84*speed;
+	        		vary2 += route_y/84*speed;
+	        	}
+	        	if(varx2>=route_x && vary2==route_y-2){
+	        		curx= x_out;
+	        		cury= y_out;
+	        		printf("arrivé en 3 depuis 1(et2) \n");
+	        	}
+	        	varx=varx2+(x_2-x_in);
+	        	vary=vary2+(y_2-y_in);
+        	}
+        	if(dest2==4 && (curx==x_4 && cury==y_4)){
+        		route_x = x_out - curx;
+        		route_y = y_out - cury;
+        		if(varx2<=route_x-px && vary2<=route_y){
+	        		varx2 += route_x/84*speed;
+	        		vary2 += route_y/84*speed;
+	        	}
+	        	if(varx2>=route_x && vary2==route_y-2){
+	        		curx= x_out;
+	        		cury= y_out;
+	        		printf("arrivé en 3 depuis 4(et1) \n");
+	        	}
+	        	varx=varx2+(x_2-x_in);
+	        	vary=vary2+(y_2-y_in);
+        	}
+        }
         
 
     }
