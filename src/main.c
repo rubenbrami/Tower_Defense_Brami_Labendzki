@@ -35,6 +35,11 @@ float traductionY(float y){
 	return -(y-300)/75.0;
 }
 
+
+
+bool estDansZoneConstructible(int X, int Y, int** zoneConstructible, int dimX, int dimY){
+    
+}
 static float px = 0.013333;
 static float x_in ,y_in ;
 static float x_out, y_out;
