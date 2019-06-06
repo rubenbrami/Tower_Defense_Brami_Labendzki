@@ -8,6 +8,11 @@
 #include <time.h>
 #include <string.h>
 
+#include "verify.c"
+#include "verifyMap.c"
+#include "createMap.c"
+
+
 #include "draw.c"
 #include "deplacementMonstres.h"
 
@@ -191,6 +196,19 @@ void reshape(SDL_Surface** surface, unsigned int width, unsigned int height)
 
 int main(int argc, char** argv) 
 {	
+
+    ITD itd;
+    scanITD("data/map1.itd",&itd);
+    for(int i=0; i<itd.nombreNoeuds; i++){
+        printf("- noeud %d = %d --- son type est %d\n", i+1,itd.indices[i],itd.types[i]);
+    }
+    //printf("%d\n",itd.pixelsConstructibles[1][3]);
+    // for(int i=0; i<800;i++){
+    //  for(int j=0; j<600; j++){
+    //      printf("au pixel [%d][%d] = > [%d]\n",i,j,itd.pixelsConstructibles[i][j]);
+    //  }
+    // }
+    creerCarte(scanMap(itd.nameImage,&itd),itd.nameImage,&itd,800,600);
 	
 	int money = 50;
 	int i = 0;
@@ -228,7 +246,11 @@ int main(int argc, char** argv)
 	SDL_WM_SetCaption("TOWER DEFENSE", NULL);
 
     /* Chargement de l'image */
-    char image_path[] = "images/MAP2SCORE.png";
+    // char image_path[] = "images/MAP2SCORE.png";
+    char image_path[10+longueurChaine(itd.nameImage)];
+    strcat(image_path,"images/");
+    strcat(image_path,itd.nameImage);
+    
     SDL_Surface* image = IMG_Load(image_path);
     if(NULL == image) {
         fprintf(stderr, "Echec du chargement de l'image %s\n", image_path);
@@ -480,7 +502,7 @@ int main(int argc, char** argv)
 			        if(ColorTower[i-1]==4  && Argent == 0){
 			        	drawTowerGreen2(Xtower[i],Ytower[i]);
 			        }
-		    	    if (Argent == 1) printf("vous n'avez pas assez d'argent pour construire de tour");
+		    	   // if (Argent == 1) printf("vous n'avez pas assez d'argent pour construire de tour");
 
 
 
